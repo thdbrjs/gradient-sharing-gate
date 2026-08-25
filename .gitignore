@@ -13,6 +13,7 @@ gradient_gate_data/
 *.ckpt
 *.safetensors
 results/**/*.png
+results/*.log
 
 !results/**/*.csv
 !results/**/README.md
