@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260" height="420" viewBox="0 0 1260 420">
+<rect width="100%" height="100%" fill="white"/>
+<style>text{font-family:Arial,sans-serif;fill:#111827}.grid{stroke:#d1d5db;stroke-width:1}.axis{stroke:#374151;stroke-width:1.2}</style>
+<text x="630" y="25" text-anchor="middle" font-size="18" font-weight="bold">FGVC Aircraft Seed 1 — Full validation</text>
+<text x="250.0" y="45" text-anchor="middle" font-size="14" font-weight="bold">BASE</text>
+<line class="grid" x1="55" y1="55.0" x2="445" y2="55.0"/>
+<text x="48" y="59.0" text-anchor="end" font-size="10">41.5</text>
+<line class="grid" x1="55" y1="130.0" x2="445" y2="130.0"/>
+<text x="48" y="134.0" text-anchor="end" font-size="10">39.6</text>
+<line class="grid" x1="55" y1="205.0" x2="445" y2="205.0"/>
+<text x="48" y="209.0" text-anchor="end" font-size="10">37.6</text>
+<line class="grid" x1="55" y1="280.0" x2="445" y2="280.0"/>
+<text x="48" y="284.0" text-anchor="end" font-size="10">35.7</text>
+<line class="grid" x1="55" y1="355.0" x2="445" y2="355.0"/>
+<text x="48" y="359.0" text-anchor="end" font-size="10">33.8</text>
+<line class="axis" x1="55" y1="55" x2="55" y2="355"/>
+<line class="axis" x1="55" y1="355" x2="445" y2="355"/>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="70.6,319.0 86.2,232.0 101.8,178.0 117.4,138.0 133.0,159.2 148.6,121.6 164.2,119.2 179.8,98.1 195.4,86.3 211.0,95.7 226.6,74.6 242.2,76.9 257.8,84.0 273.4,86.3 289.0,91.0"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="2" points="70.6,335.4 86.2,264.9 101.8,178.0 117.4,168.6 133.0,192.1 148.6,135.7 164.2,128.6 179.8,126.3 195.4,123.9 211.0,107.5 226.6,100.4 242.2,102.8 257.8,102.8 273.4,102.8 289.0,102.8 304.6,102.8 320.2,98.1 335.8,95.7 351.4,93.4 367.0,100.4 382.6,93.4 398.2,91.0 413.8,95.7 429.4,98.1 445.0,95.7"/>
+<text x="250.0" y="385" text-anchor="middle" font-size="11">Step (0–5000)</text>
+<text x="660.0" y="45" text-anchor="middle" font-size="14" font-weight="bold">NEW</text>
+<line class="grid" x1="465" y1="55.0" x2="855" y2="55.0"/>
+<text x="458" y="59.0" text-anchor="end" font-size="10">39.3</text>
+<line class="grid" x1="465" y1="130.0" x2="855" y2="130.0"/>
+<text x="458" y="134.0" text-anchor="end" font-size="10">38.7</text>
+<line class="grid" x1="465" y1="205.0" x2="855" y2="205.0"/>
+<text x="458" y="209.0" text-anchor="end" font-size="10">38.1</text>
+<line class="grid" x1="465" y1="280.0" x2="855" y2="280.0"/>
+<text x="458" y="284.0" text-anchor="end" font-size="10">37.4</text>
+<line class="grid" x1="465" y1="355.0" x2="855" y2="355.0"/>
+<text x="458" y="359.0" text-anchor="end" font-size="10">36.8</text>
+<line class="axis" x1="465" y1="55" x2="465" y2="355"/>
+<line class="axis" x1="465" y1="355" x2="855" y2="355"/>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="480.6,278.8 496.2,168.1 511.8,197.6 527.4,249.3 543.0,146.0 558.6,190.2 574.2,227.1 589.8,249.3 605.4,286.2 621.0,278.8 636.6,278.8 652.2,293.5 667.8,264.0 683.4,264.0 699.0,271.4"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="2" points="480.6,278.8 496.2,197.6 511.8,227.1 527.4,219.8 543.0,116.5 558.6,146.0 574.2,160.7 589.8,234.5 605.4,249.3 621.0,241.9 636.6,286.2 652.2,256.6 667.8,241.9 683.4,249.3 699.0,256.6 714.6,264.0 730.2,256.6 745.8,264.0 761.4,271.4 777.0,264.0 792.6,271.4 808.2,271.4 823.8,271.4 839.4,271.4 855.0,271.4"/>
+<text x="660.0" y="385" text-anchor="middle" font-size="11">Step (0–5000)</text>
+<text x="1070.0" y="45" text-anchor="middle" font-size="14" font-weight="bold">HM</text>
+<line class="grid" x1="875" y1="55.0" x2="1265" y2="55.0"/>
+<text x="868" y="59.0" text-anchor="end" font-size="10">39.6</text>
+<line class="grid" x1="875" y1="130.0" x2="1265" y2="130.0"/>
+<text x="868" y="134.0" text-anchor="end" font-size="10">38.6</text>
+<line class="grid" x1="875" y1="205.0" x2="1265" y2="205.0"/>
+<text x="868" y="209.0" text-anchor="end" font-size="10">37.5</text>
+<line class="grid" x1="875" y1="280.0" x2="1265" y2="280.0"/>
+<text x="868" y="284.0" text-anchor="end" font-size="10">36.4</text>
+<line class="grid" x1="875" y1="355.0" x2="1265" y2="355.0"/>
+<text x="868" y="359.0" text-anchor="end" font-size="10">35.3</text>
+<line class="axis" x1="875" y1="55" x2="875" y2="355"/>
+<line class="axis" x1="875" y1="355" x2="1265" y2="355"/>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="890.6,304.5 906.2,193.5 921.8,153.0 937.4,133.4 953.0,121.8 968.6,102.0 984.2,111.0 999.8,99.9 1015.4,101.5 1031.0,107.0 1046.6,89.7 1062.2,96.2 1077.8,92.8 1093.4,94.8 1109.0,100.9"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="2" points="890.6,320.3 906.2,231.9 921.8,161.4 937.4,151.1 953.0,142.8 968.6,101.2 984.2,99.4 999.8,119.1 1015.4,121.5 1031.0,105.5 1046.6,113.1 1062.2,106.1 1077.8,101.6 1093.4,103.8 1109.0,106.1 1124.6,108.3 1140.2,102.2 1155.8,102.5 1171.4,102.8 1187.0,106.3 1202.6,102.8 1218.2,100.9 1233.8,104.7 1249.4,106.6 1265.0,104.7"/>
+<text x="1070.0" y="385" text-anchor="middle" font-size="11">Step (0–5000)</text>
+<line x1="1030" y1="405" x2="1055" y2="405" stroke="#2563eb" stroke-width="3"/><text x="1062" y="409" font-size="11">Raw</text>
+<line x1="1120" y1="405" x2="1145" y2="405" stroke="#dc2626" stroke-width="3"/><text x="1152" y="409" font-size="11">q gate</text>
+</svg>

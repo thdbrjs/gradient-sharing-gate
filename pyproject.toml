@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gradient-sharing-gate"
+version = "0.1.0"
+description = "Element-wise gradient update gating using cross-example sharing statistics"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "pillow>=10",
+  "scipy>=1.11",
+  "torch>=2.4",
+  "torchvision>=0.19",
+  "transformers>=4.45"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["gradient_sharing_gate*", "architecture*", "datasets*", "methods*", "peft*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
