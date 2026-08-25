@@ -8,7 +8,7 @@ Raw와 q는 seed, few-shot split, minibatch 순서, optimizer, scheduler, 학습
 
 | 항목 | 값 |
 |---|---:|
-| Dataset | FGVC Aircraft base-to-new |
+| Dataset | FGVC Aircraft, EuroSAT, DTD base-to-new |
 | Shots | class당 16 |
 | Batch size | 32 |
 | Trainable parameters | CLIP vision/text LayerNorm |

@@ -21,7 +21,7 @@ gate     = q
 
 - Model: pretrained CLIP
 - Adaptation: vision/text encoder의 LayerNorm만 학습
-- Dataset: FGVC Aircraft, base-to-new 16-shot
+- Datasets: FGVC Aircraft, EuroSAT, DTD (base-to-new 16-shot)
 - Batch size: 32
 - q 초기화: 200개 이미지
 - q 온라인 갱신: step당 4개 이미지, EMA beta 0.95
@@ -40,7 +40,7 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
-FGVC Aircraft는 기본적으로 `data/fgvc_aircraft/`에서 찾고, 없으면 torchvision이 자동으로 내려받습니다.
+데이터는 상위 프로젝트의 `data/` 아래에서 찾고, 없으면 torchvision이 자동으로 내려받습니다.
 
 ## 실행
 
@@ -52,6 +52,8 @@ FGVC Aircraft는 기본적으로 `data/fgvc_aircraft/`에서 찾고, 없으면 t
 ./scripts/run_fgvc_q.ps1 -Seed 1 -QMode abs
 python scripts/plot_results.py
 ```
+
+`run_fgvc_raw.ps1`과 `run_fgvc_q.ps1`은 이름을 호환성 때문에 유지하지만, `-Dataset eurosat` 또는 `-Dataset dtd`도 지원합니다. 전체 후속 실험은 `run_followup_datasets_queue.ps1`이 관리합니다.
 
 긴 실험은 `--checkpoint`, `--checkpoint_every`, `--resume`을 이용해 이어갈 수 있습니다. 구체적인 설정은 [실험 프로토콜](docs/experiment_protocol.md), 연구 의도와 주의점은 [연구 방향](docs/research_direction.md)을 참고하세요.
 

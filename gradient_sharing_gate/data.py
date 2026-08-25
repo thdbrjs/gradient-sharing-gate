@@ -1,10 +1,11 @@
-"""FGVC Aircraft base-to-new 16-shot data pipeline."""
+"""Base-to-new 16-shot pipelines for the focused CLIP experiments."""
 
 from math import ceil
 from random import Random
 
+import torch
 from torch.utils.data import DataLoader, Dataset, Subset
-from torchvision.datasets import FGVCAircraft
+from torchvision.datasets import DTD, EuroSAT, FGVCAircraft
 from torchvision.transforms import (
     CenterCrop,
     Compose,
@@ -18,7 +19,20 @@ from torchvision.transforms import (
 
 
 GLOBAL_SEED = 2026
-TEMPLATE = "a photo of a {}, a type of aircraft."
+TEMPLATES = {
+    "fgvc": "a photo of a {}, a type of aircraft.",
+    "eurosat": "a centered satellite photo of {}.",
+    "dtd": "{} texture.",
+}
+EUROSAT_NAMES = {
+    "AnnualCrop": "Annual Crop Land",
+    "HerbaceousVegetation": "Herbaceous Vegetation Land",
+    "Industrial": "Industrial Buildings",
+    "Pasture": "Pasture Land",
+    "PermanentCrop": "Permanent Crop Land",
+    "Residential": "Residential Buildings",
+    "SeaLake": "Sea or Lake",
+}
 CLIP_MEAN = (0.48145466, 0.4578275, 0.40821073)
 CLIP_STD = (0.26862954, 0.26130258, 0.27577711)
 
@@ -82,6 +96,25 @@ def base2new_split(train, validation, test):
     )
 
 
+def _subset(dataset, indices):
+    subset = Subset(dataset, indices)
+    subset.classes = dataset.classes
+    subset.template = dataset.template
+    return subset
+
+
+def _split_single_dataset(train, evaluation):
+    generator = torch.Generator().manual_seed(GLOBAL_SEED)
+    indices = torch.randperm(len(train), generator=generator).tolist()
+    train_end = int(len(indices) * 0.7)
+    validation_end = int(len(indices) * 0.8)
+    return (
+        _subset(train, indices[:train_end]),
+        _subset(evaluation, indices[train_end:validation_end]),
+        _subset(evaluation, indices[validation_end:]),
+    )
+
+
 def _transforms():
     train = Compose([
         RandomResizedCrop(224, interpolation=InterpolationMode.BICUBIC),
@@ -98,16 +131,44 @@ def _transforms():
     return train, test
 
 
+def _build_datasets(dataset_name, root, train_transform, test_transform):
+    if dataset_name == "fgvc":
+        dataset_root = f"{root}/fgvc_aircraft"
+        datasets = (
+            FGVCAircraft(dataset_root, split="train", annotation_level="variant", download=True, transform=train_transform),
+            FGVCAircraft(dataset_root, split="val", annotation_level="variant", download=True, transform=test_transform),
+            FGVCAircraft(dataset_root, split="test", annotation_level="variant", download=True, transform=test_transform),
+        )
+    elif dataset_name == "dtd":
+        dataset_root = f"{root}/dtd"
+        datasets = (
+            DTD(dataset_root, split="train", download=True, transform=train_transform),
+            DTD(dataset_root, split="val", download=True, transform=test_transform),
+            DTD(dataset_root, split="test", download=True, transform=test_transform),
+        )
+    elif dataset_name == "eurosat":
+        dataset_root = f"{root}/eurosat"
+        train = EuroSAT(dataset_root, download=True, transform=train_transform)
+        evaluation = EuroSAT(dataset_root, download=True, transform=test_transform)
+        train.classes = [EUROSAT_NAMES.get(name, name) for name in train.classes]
+        evaluation.classes = train.classes
+        for dataset in (train, evaluation):
+            dataset.template = TEMPLATES[dataset_name]
+        return _split_single_dataset(train, evaluation)
+    else:
+        raise ValueError(f"unsupported dataset: {dataset_name}")
+    return datasets
+
+
 def get_dataloader(batch_size, dataset_name="fgvc", root="data", shots=16, setting="base2new"):
-    if dataset_name != "fgvc" or setting != "base2new":
-        raise ValueError("this focused repository supports only FGVC base2new")
+    if setting != "base2new":
+        raise ValueError("this repository supports only the base2new setting")
     train_transform, test_transform = _transforms()
-    dataset_root = f"{root}/fgvc_aircraft"
-    train = FGVCAircraft(dataset_root, split="train", annotation_level="variant", download=True, transform=train_transform)
-    validation = FGVCAircraft(dataset_root, split="val", annotation_level="variant", download=True, transform=test_transform)
-    test = FGVCAircraft(dataset_root, split="test", annotation_level="variant", download=True, transform=test_transform)
+    train, validation, test = _build_datasets(
+        dataset_name, root, train_transform, test_transform
+    )
     for dataset in (train, validation, test):
-        dataset.template = TEMPLATE
+        dataset.template = TEMPLATES[dataset_name]
     train, val_base, val_new, test_base, test_new = base2new_split(train, validation, test)
     train = fewshot_subset(train, shots)
     return (
