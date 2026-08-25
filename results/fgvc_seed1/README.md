@@ -1,6 +1,6 @@
-# FGVC Aircraft — Seed 1 preliminary result
+# FGVC Aircraft — Seed 1 legacy preliminary result
 
-Full validation은 200 step마다 측정했습니다.
+Full validation은 200 step마다 측정했습니다. 이 결과는 이전 설정인 `q_abs`와 `gate=clamp(q/0.5, 0, 1)`로 얻었으며, 현재 기본 설정인 `q_signed`와 `gate=q`의 결과가 아닙니다.
 
 | Run | Steps | Best HM (step) | Base | New | Final HM |
 |---|---:|---:|---:|---:|---:|

@@ -17,7 +17,8 @@ Raw와 q는 seed, few-shot split, minibatch 순서, optimizer, scheduler, 학습
 | q initialization | 200 images |
 | q online samples | 4 images/step |
 | q EMA beta | 0.95 |
-| q gate maximum | 0.5 |
+| q mode | signed |
+| Gate mapping | identity (`gate=q`) |
 | Validation EMA samples | Base 16 + New 16/step |
 | Validation EMA beta | 0.97 |
 | Full validation | 200 steps |

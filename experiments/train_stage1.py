@@ -152,7 +152,7 @@ def sampled_accuracy(method, dataset, pairs, classifier, device):
     return correctness.float().mean().item(), correctness.tolist()
 
 
-def initialize_q(method, train_dataset, named, count, device):
+def initialize_q(method, train_dataset, named, count, device, q_mode):
     python_state = random.getstate()
     torch_state = torch.random.get_rng_state()
     cuda_states = torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None
@@ -169,12 +169,12 @@ def initialize_q(method, train_dataset, named, count, device):
             losses = F.cross_entropy(method.stage_one_logits(images), labels, reduction="none")
         for index, loss in enumerate(losses):
             gradients.append(flat_gradient(loss, named, retain_graph=index + 1 < len(losses)).detach())
-    first_abs, second_square = moments_from_gradients(gradients)
+    first_moment, second_square = moments_from_gradients(gradients, mode=q_mode)
     random.setstate(python_state)
     torch.random.set_rng_state(torch_state)
     if cuda_states is not None:
         torch.cuda.set_rng_state_all(cuda_states)
-    return first_abs, second_square
+    return first_moment, second_square
 
 
 class QVectorWriter:
@@ -203,7 +203,7 @@ class QVectorWriter:
 
 
 def save_checkpoint(
-    destination, step, named, optimizer, scheduler, scaler, first_abs,
+    destination, step, named, optimizer, scheduler, scaler, first_moment,
     second_square, ema_base, ema_new, initial_base, initial_new,
     base_stream, new_stream, args,
 ):
@@ -211,9 +211,10 @@ def save_checkpoint(
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_suffix(destination.suffix + ".tmp")
     state = {
-        "version": 1,
+        "version": 2,
         "step": step,
         "method": args.method,
+        "q_mode": args.q_mode if args.method == "q" else None,
         "dataset": args.dataset,
         "seed": args.seed,
         "steps": args.steps,
@@ -224,7 +225,7 @@ def save_checkpoint(
         "optimizer": optimizer.state_dict(),
         "scheduler": scheduler.state_dict(),
         "scaler": scaler.state_dict(),
-        "first_abs": None if first_abs is None else first_abs.detach().cpu(),
+        "first_moment": None if first_moment is None else first_moment.detach().cpu(),
         "second_square": None if second_square is None else second_square.detach().cpu(),
         "ema_base": ema_base,
         "ema_new": ema_new,
@@ -281,6 +282,11 @@ def run(args):
         checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
         if checkpoint["method"] != args.method or checkpoint["seed"] != args.seed:
             raise RuntimeError("checkpoint method/seed does not match this run")
+        checkpoint_q_mode = checkpoint.get("q_mode", "abs")
+        if args.method == "q" and checkpoint_q_mode != args.q_mode:
+            raise RuntimeError(
+                f"checkpoint q_mode={checkpoint_q_mode} does not match --q_mode={args.q_mode}"
+            )
         extending = checkpoint["steps"] < args.steps and args.extend
         if checkpoint["steps"] != args.steps and not extending:
             raise RuntimeError("checkpoint total steps does not match --steps; use --extend to continue farther")
@@ -301,15 +307,15 @@ def run(args):
                 flush=True,
             )
 
-    first_abs = second_square = None
+    first_moment = second_square = None
     q_writer = None
     if use_q:
         if checkpoint is None:
-            first_abs, second_square = initialize_q(
-                method, train_loader.dataset, named, args.q_init_images, device
+            first_moment, second_square = initialize_q(
+                method, train_loader.dataset, named, args.q_init_images, device, args.q_mode
             )
         else:
-            first_abs = checkpoint["first_abs"].to(device)
+            first_moment = checkpoint.get("first_moment", checkpoint.get("first_abs")).to(device)
             second_square = checkpoint["second_square"].to(device)
         q_writer = QVectorWriter(
             args.q_output,
@@ -321,9 +327,14 @@ def run(args):
                 "seed": args.seed,
                 "steps": args.steps,
                 "q_dtype": "float16",
-                "q_definition": "E_abs_g_squared_over_E_g_squared",
+                "q_definition": (
+                    "E_abs_g_squared_over_E_g_squared"
+                    if args.q_mode == "abs"
+                    else "E_g_squared_over_E_g_squared"
+                ),
+                "q_mode": args.q_mode,
                 "q_ema_beta": args.q_ema_beta,
-                "q_gate_max": args.q_gate_max,
+                "gate_mapping": "identity",
                 "parameters": parameter_metadata(named),
             },
         )
@@ -412,11 +423,11 @@ def run(args):
                     flat_gradient(losses[index], named, retain_graph=True).detach()
                     for index in selected
                 ]
-                first_abs, second_square = update_moments(
-                    first_abs, second_square, observed, args.q_ema_beta
+                first_moment, second_square = update_moments(
+                    first_moment, second_square, observed, args.q_ema_beta, mode=args.q_mode
                 )
-                q = sharing_q(first_abs, second_square, args.epsilon)
-                gate = q_to_gate(q, args.q_gate_max)
+                q = sharing_q(first_moment, second_square, args.epsilon)
+                gate = q_to_gate(q)
                 q_writer.add(step, q)
                 previous = [parameter.detach().clone() for _, parameter in named]
 
@@ -493,7 +504,7 @@ def run(args):
                     q_writer.flush()
                 save_checkpoint(
                     checkpoint_path, step, named, optimizer, scheduler, scaler,
-                    first_abs, second_square, ema_base, ema_new, initial_base,
+                    first_moment, second_square, ema_base, ema_new, initial_base,
                     initial_new, base_stream, new_stream, args,
                 )
                 print(f"checkpoint -> {checkpoint_path} (step {step})", flush=True)
@@ -532,7 +543,7 @@ def parse_args():
     parser.add_argument("--q_init_images", type=int, default=200)
     parser.add_argument("--q_online_images", type=int, default=4)
     parser.add_argument("--q_ema_beta", type=float, default=0.95)
-    parser.add_argument("--q_gate_max", type=float, default=0.5)
+    parser.add_argument("--q_mode", choices=["abs", "signed"], default="signed")
     parser.add_argument("--q_chunk_steps", type=int, default=100)
     parser.add_argument("--epsilon", type=float, default=1e-30)
     parser.add_argument("--log_every", type=int, default=20)

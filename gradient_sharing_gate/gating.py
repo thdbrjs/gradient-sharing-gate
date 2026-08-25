@@ -17,49 +17,53 @@ def _stack(gradients: torch.Tensor | Sequence[torch.Tensor]) -> torch.Tensor:
 
 def moments_from_gradients(
     gradients: torch.Tensor | Sequence[torch.Tensor],
+    mode: str = "abs",
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Return E[|g|] and E[g^2] across examples for every parameter."""
+    """Return the selected first moment and E[g^2] for every parameter."""
     stacked = _stack(gradients)
-    return stacked.abs().mean(dim=0), stacked.square().mean(dim=0)
+    if mode == "abs":
+        first = stacked.abs().mean(dim=0)
+    elif mode == "signed":
+        first = stacked.mean(dim=0)
+    else:
+        raise ValueError("mode must be 'abs' or 'signed'")
+    return first, stacked.square().mean(dim=0)
 
 
 def update_moments(
-    first_abs: torch.Tensor,
+    first_moment: torch.Tensor,
     second_square: torch.Tensor,
     gradients: torch.Tensor | Sequence[torch.Tensor],
     beta: float,
+    mode: str = "abs",
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Update the two sharing moments with an exponential moving average."""
     if not 0.0 <= beta < 1.0:
         raise ValueError("beta must satisfy 0 <= beta < 1")
-    observed_abs, observed_square = moments_from_gradients(gradients)
+    observed_first, observed_square = moments_from_gradients(gradients, mode=mode)
     return (
-        beta * first_abs + (1.0 - beta) * observed_abs,
+        beta * first_moment + (1.0 - beta) * observed_first,
         beta * second_square + (1.0 - beta) * observed_square,
     )
 
 
 def sharing_q(
-    first_abs: torch.Tensor,
+    first_moment: torch.Tensor,
     second_square: torch.Tensor,
     epsilon: float = 1e-30,
 ) -> torch.Tensor:
-    """Estimate how broadly each parameter's gradient is shared across examples.
+    """Compute a normalized first-to-second-moment ratio in [0, 1].
 
-    q = E[|g|]^2 / (E[g^2] + epsilon). Signs intentionally do not cancel.
-    q approaches 1 when magnitudes are similar across examples and approaches
-    1/B when only one of B examples contributes.
+    The caller chooses whether the first moment is E[|g|] or E[g].
     """
     if epsilon <= 0:
         raise ValueError("epsilon must be positive")
-    return first_abs.square().div(second_square + epsilon).clamp(0.0, 1.0)
+    return first_moment.square().div(second_square + epsilon).clamp(0.0, 1.0)
 
 
-def q_to_gate(q: torch.Tensor, q_gate_max: float = 0.5) -> torch.Tensor:
-    """Map q in [0, q_gate_max] linearly to an update multiplier in [0, 1]."""
-    if q_gate_max <= 0:
-        raise ValueError("q_gate_max must be positive")
-    return q.div(q_gate_max).clamp(0.0, 1.0)
+def q_to_gate(q: torch.Tensor) -> torch.Tensor:
+    """Use q's original [0, 1] range directly as the update multiplier."""
+    return q.clamp(0.0, 1.0)
 
 
 @torch.no_grad()

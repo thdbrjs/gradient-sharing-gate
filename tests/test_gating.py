@@ -14,19 +14,22 @@ from gradient_sharing_gate.gating import (
 class GatingTest(unittest.TestCase):
     def test_q_is_one_for_equal_magnitudes_despite_sign_conflict(self):
         gradients = torch.tensor([[2.0, -3.0], [-2.0, 3.0]])
-        first, second = moments_from_gradients(gradients)
+        first, second = moments_from_gradients(gradients, mode="abs")
         self.assertTrue(torch.allclose(sharing_q(first, second), torch.ones(2)))
+
+    def test_signed_q_cancels_opposite_directions(self):
+        gradients = torch.tensor([[2.0, -3.0], [-2.0, 3.0]])
+        first, second = moments_from_gradients(gradients, mode="signed")
+        self.assertTrue(torch.equal(sharing_q(first, second), torch.zeros(2)))
 
     def test_q_is_inverse_batch_size_for_one_contributing_example(self):
         gradients = torch.tensor([[4.0], [0.0], [0.0], [0.0]])
         first, second = moments_from_gradients(gradients)
         self.assertAlmostEqual(sharing_q(first, second).item(), 0.25)
 
-    def test_q_to_gate_scales_and_clamps(self):
+    def test_q_to_gate_preserves_original_range(self):
         q = torch.tensor([0.0, 0.25, 0.5, 0.75])
-        self.assertTrue(
-            torch.equal(q_to_gate(q, 0.5), torch.tensor([0.0, 0.5, 1.0, 1.0]))
-        )
+        self.assertTrue(torch.equal(q_to_gate(q), q))
 
     def test_update_moments_uses_ema(self):
         first = torch.tensor([1.0])

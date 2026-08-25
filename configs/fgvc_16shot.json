@@ -12,6 +12,7 @@
   "q_init_images": 200,
   "q_online_images": 4,
   "q_ema_beta": 0.95,
-  "q_gate_max": 0.5,
+  "q_mode": "signed",
+  "gate_mapping": "identity",
   "epsilon": 1e-30
 }

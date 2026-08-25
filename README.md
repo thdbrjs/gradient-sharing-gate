@@ -7,13 +7,14 @@ Fine-tuning 중 **한두 이미지에만 국소적으로 반응하는 gradient �
 각 이미지의 gradient를 `g_i`라 할 때 parameter별 통계는 다음과 같습니다.
 
 ```text
-q = E[|g_i|]^2 / (E[g_i^2] + eps)
-gate = clamp(q / q_max, 0, 1)
+q_abs    = E[|g_i|]^2 / (E[g_i^2] + eps)
+q_signed = E[g_i]^2   / (E[g_i^2] + eps)
+gate     = q
 ```
 
 - 여러 이미지가 비슷한 크기로 영향을 주면 `q`가 1에 가까워집니다.
 - B개 이미지 중 하나만 영향을 주면 `q`는 대략 `1/B`입니다.
-- 부호 충돌은 처벌하지 않습니다. 절댓값을 사용하므로 서로 반대 방향인 유효한 신호도 공유성으로 인정합니다.
+- `abs`는 gradient의 관여 범위를, `signed`는 이미지 간 방향 합의까지 측정합니다.
 - gate는 gradient 자체를 예측하지 않고, optimizer가 제안한 parameter displacement만 요소별로 축소합니다.
 
 ## 현재 실험
@@ -24,11 +25,12 @@ gate = clamp(q / q_max, 0, 1)
 - Batch size: 32
 - q 초기화: 200개 이미지
 - q 온라인 갱신: step당 4개 이미지, EMA beta 0.95
-- gate: `q < 0.5`를 0~1로 선형 변환
+- 기본 q mode: `signed`
+- gate: q의 원래 0~1 범위를 그대로 사용
 - validation EMA: step당 Base 16 + New 16, beta 0.97
 - full validation: 200 step마다
 
-Seed 1의 예비 결과는 [results/fgvc_seed1](results/fgvc_seed1)에 포함했습니다. 현재 한 seed에서는 q가 raw보다 뚜렷하게 우수하다고 말할 수 없습니다. 이 레포는 아이디어를 검증하고 실패 원인을 분리하기 위한 재현 가능한 기반입니다.
+Seed 1의 예비 결과는 [results/fgvc_seed1](results/fgvc_seed1)에 포함했습니다. 이 기록은 이전 `abs + q/0.5` 설정의 결과이며 새 `signed + identity gate` 결과가 아닙니다. 현재 한 seed에서는 기존 q가 raw보다 뚜렷하게 우수하다고 말할 수 없습니다.
 
 ## 설치
 
@@ -47,6 +49,7 @@ FGVC Aircraft는 기본적으로 `data/fgvc_aircraft/`에서 찾고, 없으면 t
 ```powershell
 ./scripts/run_fgvc_raw.ps1 -Seed 1
 ./scripts/run_fgvc_q.ps1 -Seed 1
+./scripts/run_fgvc_q.ps1 -Seed 1 -QMode abs
 python scripts/plot_results.py
 ```
 

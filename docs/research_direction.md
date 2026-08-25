@@ -8,9 +8,13 @@
 
 Gradient generator가 새로운 gradient를 출력하게 하지 않습니다. 원래 loss와 optimizer가 제안한 update는 보존하고, 각 parameter 요소의 cross-example sharing score를 추정하여 update 크기만 0~1 사이에서 조절합니다.
 
-`q = E[|g|]^2 / E[g^2]`
+현재 기본 실험은 방향 합의를 보는 다음 점수를 사용합니다.
 
-여기서 이미지 간 gradient 부호는 일치할 필요가 없습니다. 관심 대상은 같은 방향의 합의가 아니라, 해당 요소가 여러 이미지에 실제 영향을 미치는지입니다. 그래서 평균 gradient가 아닌 gradient 절댓값의 1차 moment와 제곱의 2차 moment를 사용합니다.
+`q_signed = E[g]^2 / E[g^2]`
+
+비교군인 `q_abs = E[|g|]^2 / E[g^2]`는 부호와 무관한 관여 범위를 측정합니다.
+
+`signed`에서는 이미지 간 부호가 충돌하면 평균이 상쇄되어 q가 작아집니다. 따라서 여러 이미지가 해당 요소를 사용할 뿐 아니라 같은 update 방향에 동의하는지를 요구합니다. Gate는 별도 재조정 없이 계산된 q의 0~1 범위를 그대로 사용합니다.
 
 ## 현재 주장의 범위
 
