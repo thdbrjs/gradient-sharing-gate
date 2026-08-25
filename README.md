@@ -38,7 +38,7 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
-데이터는 기본적으로 `data/` 아래에서 찾습니다. 기존 2SFS 형식의 데이터 폴더를 그대로 사용할 수 있습니다.
+FGVC Aircraft는 기본적으로 `data/fgvc_aircraft/`에서 찾고, 없으면 torchvision이 자동으로 내려받습니다.
 
 ## 실행
 
@@ -55,7 +55,7 @@ python scripts/plot_results.py
 ## 구조
 
 ```text
-gradient_sharing_gate/   q 통계와 update gate 핵심 구현
+gradient_sharing_gate/   q 통계, CLIP wrapper, FGVC 데이터 구성
 experiments/             CLIP 2SFS Stage-1 학습 실행 파일
 configs/                 확정한 실험 설정
 scripts/                 raw/q 실행, 결과 요약 및 그래프

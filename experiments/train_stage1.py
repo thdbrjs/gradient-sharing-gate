@@ -10,9 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from architecture import CLIP_MODEL, load_clip
-from datasets import get_dataloader
-from datasets.fewshot import dataset_labels
+from gradient_sharing_gate.data import dataset_labels, get_dataloader
 from gradient_sharing_gate.gating import (
     apply_gate_to_update,
     moments_from_gradients,
@@ -21,7 +19,7 @@ from gradient_sharing_gate.gating import (
     update_moments,
 )
 from gradient_sharing_gate.seed import seed_everything
-from methods import TwoStageCLIP
+from gradient_sharing_gate.model import CLIP_MODEL, TwoStageCLIP, load_clip
 
 
 def harmonic_mean(a, b):
@@ -261,7 +259,7 @@ def run(args):
     seed_everything(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_loader, validation_loaders, _, _ = get_dataloader(
-        args.batch_size, args.dataset, "2sfs", root=args.data_root,
+        args.batch_size, args.dataset, root=args.data_root,
         shots=args.shots, setting="base2new",
     )
     val_base_loader, val_new_loader = validation_loaders
